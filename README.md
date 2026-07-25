@@ -102,7 +102,7 @@ jobs:
   qa:
     strategy:
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
