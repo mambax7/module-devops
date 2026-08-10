@@ -29,4 +29,3 @@
 /sonar-project.properties export-ignore
 /.git-blame-ignore-revs export-ignore
 /composer.lock          export-ignore
-/CHANGELOG.md           export-ignore
