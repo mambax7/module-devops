@@ -27,7 +27,8 @@ maintainers for the matching variant.)
 | `.github/ISSUE_TEMPLATE/`, `PULL_REQUEST_TEMPLATE.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `FUNDING.yml` | Community-health files. If your repo lives in an org that provides these centrally, you may delete the local copies to inherit the org-wide versions. |
 | `composer.json` | Module identity + the standard `require-dev` and `scripts`. **Rename** `name`/namespace for your module. |
 | `.php-cs-fixer.dist.php` | Coding-style rules (PSR-12 + XOOPS adjustments). The **only** style engine used. |
-| `phpstan.neon.dist`, `phpstan-baseline.neon`, `phpstan-bootstrap.php`, `stubs/xoops.stub` | Static analysis config. The stub teaches PHPStan the core XOOPS classes (XoopsObject, handlers, Criteria, `Xmf\Module\Helper`) so analysis is meaningful without a full XOOPS runtime. |
+| `phpstan.neon.dist`, `phpstan-baseline.neon`, `phpstan-bootstrap.php`, `stubs/xoops.stub` | Static analysis config. The stub teaches PHPStan the core XOOPS classes (XoopsObject, handlers, Criteria, `Xmf\Module\Helper`, the 2.7.3+ error-screen ownership functions) so analysis is meaningful without a full XOOPS runtime. See [Extending the stub](#extending-the-stub) before adding a class to it. |
+| `docs/` | Guidance that outlives any one module. Currently: [Hosting a library that grabs global handlers](docs/hosting-a-library-that-grabs-global-handlers.md) — how to keep a Composer package from taking PHP's error handler, the session or the output buffer out from under XOOPS. |
 | `rector.php` | Automated refactoring, pinned to the target PHP level (only scans directories that exist). Ships the **`xoops/rector-xoops`** rule set (`XoopsSetList::XOOPS`) so XOOPS-specific modernisation (DB `query`/`exec` split, removed PHP funcs, MyTextSanitizer + Smarty API renames) runs alongside the generic PHP sets. |
 | `phpunit.xml.dist`, `tests/` | Test config + a guarded bootstrap. Put unit tests in `tests/Unit/`, integration tests in `tests/Integration/`. |
 | `.gitattributes` | `export-ignore` rules — keeps dev/CI files **out** of the release ZIP. |
@@ -139,6 +140,29 @@ To enable it for a module:
 2. In `sonar-project.properties`, set `sonar.organization` and `sonar.projectKey` to match your SonarCloud project.
 3. Add a **`SONAR_TOKEN`** secret under *Settings → Secrets and variables → Actions*.
 4. *(Optional)* install the SonarCloud GitHub App for pull-request decoration.
+
+## Extending the stub
+
+`stubs/xoops.stub` declares core symbols so PHPStan stops reporting `class.notFound` /
+`function.notFound` for APIs that only exist inside a booted XOOPS. Two things to know
+before you add to it.
+
+**Declaring a class turns one error into several.** While a class is unknown, every call on
+it is a single `class.notFound`. Once the class exists, PHPStan starts checking the calls —
+so a class with five methods you did not declare produces five `method.notFound` where
+there was one error before, and any `phpstan-baseline.neon` entry matching the old message
+silently stops applying. Add the methods your modules actually call in the same change, and
+re-run `composer analyse` on a consumer module before you push the baseline.
+
+**A `core27` stub describes the newest 2.7 API, not the site's.** It cannot express "since
+2.7.3". If your module's `min_xoops` is below the release that added a function, keep the
+`function_exists()` guard around every call — the stub silences the analyser, it does not
+create the function at runtime. The error-screen ownership functions in the stub are the
+current example and say so where they are declared.
+
+**Prefer the shared stub to a local one.** Modules that hand-copy declarations drift the
+moment a signature changes. If you need a symbol, add it here and re-sync, rather than
+patching your module's copy.
 
 ## Release archives
 

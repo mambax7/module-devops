@@ -177,6 +177,28 @@ namespace {
     {
         public function __construct() {}
     }
+
+    // ------------------------------------------------- error-screen ownership (2.7.3+)
+
+    // The provider API published by htdocs/include/debugconfig.php. A module that wants to
+    // own the error screen calls these from its install / update / uninstall hooks.
+    //
+    // SINCE 2.7.3, and this stub does not say otherwise. A `core27` profile describes the
+    // LATEST 2.7 API, not what a given site is running -- so a module whose min_xoops is
+    // below 2.7.3 must keep its function_exists() guard around every call. Declaring a
+    // symbol here makes analysis stop complaining; it does not make the function exist.
+    //
+    // See docs/hosting-a-library-that-grabs-global-handlers.md for the companion rule on
+    // what a provider must not do once it has the seat.
+
+    /** Record this module as the error-screen owner. $force takes an occupied seat. */
+    function xoops_recordErrorScreenOwner(string $dirname, bool $force = false): bool {}
+
+    /** The recorded owner's dirname, or '' when the seat is free. */
+    function xoops_getRecordedErrorScreenOwner(): string {}
+
+    /** Release the seat, but only if $dirname currently holds it. */
+    function xoops_releaseErrorScreenOwner(string $dirname): bool {}
 }
 
 namespace Xmf\Module {
