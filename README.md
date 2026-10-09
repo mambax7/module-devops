@@ -1,3 +1,4 @@
+![alt XOOPS CMS](https://xoops.org/images/logo.png)
 # XOOPS Module DevOps Baseline (`module-devops`)
 
 The **standard DevOps baseline** for XOOPS modules — drop it into any module (new
